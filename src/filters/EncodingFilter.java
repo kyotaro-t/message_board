@@ -17,6 +17,7 @@ import javax.servlet.annotation.WebFilter;
 public class EncodingFilter implements Filter {
 
     /**
+     * 
      * Default constructor.
      */
     public EncodingFilter() {
