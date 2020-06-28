@@ -2,8 +2,10 @@ package controllers;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -11,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import models.Message;
+import models.MessageValidator;
 import utils.DBUtil;
 
 /**
@@ -50,6 +53,20 @@ public class UpdateServlet extends HttpServlet {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             m.setUpdated_at(currentTime);   //更新日時のみ上書き
 
+            //バリデーションを実行し、エラーがあれば編集画面に戻る
+            List<String> errors = MessageValidator.validate(m);
+            if(errors.size() > 0) {
+                em.close();
+
+                //フォームに初期値設定後、エラーメッセージ送信
+                request.setAttribute("_token", request.getSession().getId());
+                request.setAttribute("message", m);
+                request.setAttribute("errors", errors);
+
+                RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/Messages/edit.jsp");
+                rd.forward(request, response);
+            } else {
+
             //データベースを更新
             em.getTransaction().begin();
             em.getTransaction().commit();
@@ -61,6 +78,8 @@ public class UpdateServlet extends HttpServlet {
 
             //indexページへリダイレクト
             response.sendRedirect(request.getContextPath() + "/index");
+
+            }
         }
     }
 
